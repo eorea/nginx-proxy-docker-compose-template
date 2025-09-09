@@ -13,8 +13,10 @@ services:
       - ${PROJECT_PATH}/nginx-proxy-volume/conf/network_internal.conf:/etc/nginx/network_internal.conf:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/public:/etc/nginx/conf.d:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d:/etc/nginx/vhost.d:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      # - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:ro
+      # - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      - nginx-proxy-html:/usr/share/nginx/html:ro
+      - nginx-proxy-certs:/etc/nginx/certs:ro
     labels:
       - ${PUBLIC_NGINX_CONTAINER_LABEL}=true
       - com.github.nginx-proxy.nginx=true
@@ -31,8 +33,10 @@ services:
       - NGINX_DEFAULT_NETWORK_ACCESS=internal
     volumes:
       - ${PROJECT_PATH}/nginx-proxy-volume/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/public:/etc/nginx/conf.d:rw
+      # - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      - nginx-proxy-certs:/etc/nginx/certs:ro
+      # Share docker socket to listen to docker events
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - com.github.nginx-proxy.docker-gen=true
@@ -44,28 +48,43 @@ services:
     depends_on:
       - docker-gen-public
     environment:
-      # - DEFAULT_EMAIL=your_email@example.com
+      - DEFAULT_EMAIL=${ACME_EMAIL}
     volumes:
-      - ${PROJECT_PATH}/nginx-proxy-volume/acme:/etc/acme.sh
-      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:rw
-      - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:rw
+      # - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:rw
+      # - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:rw
+      # - ${PROJECT_PATH}/nginx-proxy-volume/acme:/etc/acme.sh:rw
+      - nginx-proxy-html:/usr/share/nginx/html:rw
+      - nginx-proxy-certs:/etc/nginx/certs:rw
+      - nginx-proxy-acme:/etc/acme.sh:rw
+      # Share docker socket to listen to docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   your-app:
     depends_on:
       - acme-companion
     environment:
-      - VIRTUAL_HOST=your-app.example.com
+      # - VIRTUAL_HOST=your-app.example.com,your-2nd-app.example.com
       # - VIRTUAL_PORT=3000 # (OPTIONAL. If your app port is different from default port: 80)
       # - LETSENCRYPT_HOST=your-app.example.com
-      # - LETSENCRYPT_EMAIL=mail@example.com # (OPTIONAL. Uses DEFAULT_EMAIL if defined in acme-companion)
-      - PRIVATE=true
+      # - LETSENCRYPT_EMAIL=${ACME_EMAIL} # (OPTIONAL. Uses DEFAULT_EMAIL if defined in acme-companion)
+      VIRTUAL_HOST_MULTIPORTS: |-
+          your-app.example.com:
+          your-2nd-app.example.com:
+            "/":
+              port: 80
+              network_access: external
+      PRIVATE: true
     container_name: "your-app"
     image: nginx:1.29
     ports:
       - "80"
     networks:
       - private
+
+volumes:
+  nginx-proxy-acme:
+  nginx-proxy-certs:
+  nginx-proxy-html:
 
 networks:
   dmz:

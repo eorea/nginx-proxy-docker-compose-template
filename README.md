@@ -34,18 +34,26 @@ Set your local environment by sourcing the `setenv.sh` script.
 source ./setenv.sh
 ```
 
-### Programatically populate .env
+### powershell environment variables
+
+If you use Powershell copy `setenv-sample.ps1` into `setenv.ps1`, modify your project path and acme email address and execute the `setenv.ps1` script.
+
+```powershell
+.\setenv.ps1
+```
+
+### Programatically populate environment variables
 
 #### MacOS
 
-```
+```shell
 cp dotenv.sample .env
 sed -i '' 's#/your/project/path/#/Users/eorea/#' .env
 ```
 
 #### Linux
 
-```
+```shell
 cp dotenv.sample .env
 sed -i 's#/your/project/path/#/home/eorea/#' .env
 ```

@@ -1,4 +1,5 @@
 PROJECT_PATH=/your/project/path
+ACME_EMAIL=your_email@example.com
 NO_DMZ_NGINX_CONTAINER_LABEL=com.github.nginx-proxy.nginx-proxy.isolate
 PUBLIC_NGINX_CONTAINER_LABEL=com.github.nginx-proxy.nginx-proxy.dmz
 PUBLIC_PORT_HTTP=8081
