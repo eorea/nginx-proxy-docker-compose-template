@@ -1,0 +1,41 @@
+services:
+  acme-companion:
+    depends_on:
+      - docker-gen-public
+      - docker-gen-private
+
+  ingress-private:
+    container_name: ingress-private
+    image: nginx
+    depends_on:
+      - docker-gen-private
+    networks:
+      - public
+      - private
+    volumes:
+      - ${PROJECT_PATH}/nginx-proxy-volume/conf/network_internal.conf:/etc/nginx/network_internal.conf:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/private:/etc/nginx/conf.d:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d:/etc/nginx/vhost.d:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+    labels:
+      - ${PRIVATE_NGINX_CONTAINER_LABEL}=true
+      # - com.github.nginx-proxy.nginx=true
+    ports:
+      - "${PRIVATE_PORT_HTTP}:80"
+      - "${PRIVATE_PORT_HTTPS}:443"
+
+  docker-gen-private:
+    container_name: docker-gen-private
+    image: nginxproxy/docker-gen:0.15
+    network_mode: "none"
+    environment:
+      - NGINX_CONTAINER_LABEL=${PRIVATE_NGINX_CONTAINER_LABEL}
+    volumes:
+      - ${PROJECT_PATH}/nginx-proxy-volume/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/private:/etc/nginx/conf.d:rw
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - com.github.nginx-proxy.docker-gen=true
+    command: -notify-signal 1 -notify-filter label=${PRIVATE_NGINX_CONTAINER_LABEL}=true -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
