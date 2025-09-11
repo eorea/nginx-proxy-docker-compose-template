@@ -1,9 +1,0 @@
-$env:PROJECT_PATH = '/c/your/project/path'
-$env:ACME_EMAIL = 'your_email@example.com'
-$env:NO_DMZ_NGINX_CONTAINER_LABEL = 'com.github.nginx-proxy.nginx-proxy.isolate'
-$env:PUBLIC_NGINX_CONTAINER_LABEL = 'com.github.nginx-proxy.nginx-proxy.dmz'
-$env:PUBLIC_PORT_HTTP = 8081
-$env:PUBLIC_PORT_HTTPS = 8443
-$env:PRIVATE_NGINX_CONTAINER_LABEL = 'com.github.nginx-proxy.nginx-proxy.public'
-$env:PRIVATE_PORT_HTTP = 80
-$env:PRIVATE_PORT_HTTPS = 443
