@@ -1,11 +1,12 @@
-name: nginx-proxy
+name: nginx_proxy
 
 services:
-  ingress-public:
-    container_name: ingress-public
+  ingress_public:
+    container_name: ingress_public
     image: nginx:${NGINX_IMAGE_TAG:-latest}
+    restart: 'unless-stopped'
     depends_on:
-      - docker-gen-public
+      - docker_gen_public
     networks:
       - dmz
       - private
@@ -23,8 +24,8 @@ services:
       - "${PUBLIC_PORT_HTTP}:80"
       - "${PUBLIC_PORT_HTTPS}:443"
 
-  docker-gen-public:
-    container_name: docker-gen-public
+  docker_gen_public:
+    container_name: docker_gen_public
     image: nginxproxy/docker-gen:${DOCKER_GEN_IMAGE_TAG:-latest}
     network_mode: "none"
     environment:
@@ -42,15 +43,17 @@ services:
       - com.github.nginx-proxy.docker-gen=true
     command: -notify-signal 1 -notify-filter label=${PUBLIC_NGINX_CONTAINER_LABEL}=false -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
 
-  acme-companion:
-    container_name: acme-companion
-    image: nginxproxy/acme-companion:%{ACME_COMPANION_IMAGE_TAG:-latest}
+  acme_companion:
+    container_name: acme_companion
+    image: nginxproxy/acme-companion:${ACME_COMPANION_IMAGE_TAG:-latest}
     depends_on:
-      - docker-gen-public
+      - ingress_public
+    networks:
+      - public
     environment:
       - DEFAULT_EMAIL=${ACME_EMAIL}
-    labels:
-      - com.github.nginx-proxy.instance1=true
+    # labels:
+    #   - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
     volumes:
       - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:rw
       - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:rw
@@ -60,7 +63,7 @@ services:
 
   your-1st-app:
     depends_on:
-      - acme-companion
+      - acme_companion
     environment:
       VIRTUAL_HOST: your-1st-app.example.com,your-1st-app-private.example.com
       # VIRTUAL_PORT: 3000 # (OPTIONAL. If your app port is different from default port: 80)
@@ -83,7 +86,7 @@ services:
 
   your-2nd-app:
     depends_on:
-      - acme-companion
+      - acme_companion
     environment:
       VIRTUAL_HOST: your-2nd-app.example.com
       # VIRTUAL_PORT: 3000 # (OPTIONAL. If your app port is different from default port: 80)
@@ -100,7 +103,7 @@ services:
 
   your-3rd-app:
     depends_on:
-      - acme-companion
+      - acme_companion
     environment:
       VIRTUAL_HOST: your-3rd-app.example.com
       # VIRTUAL_PORT: 3000 # (OPTIONAL. If your app port is different from default port: 80)
