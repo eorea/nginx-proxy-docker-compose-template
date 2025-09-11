@@ -6,7 +6,7 @@ services:
 
   ingress-private:
     container_name: ingress-private
-    image: nginx
+    image: nginx:${NGINX_IMAGE_TAG:-latest}
     depends_on:
       - docker-gen-private
     networks:
@@ -15,10 +15,11 @@ services:
     volumes:
       - ${PROJECT_PATH}/nginx-proxy-volume/conf/network_internal.conf:/etc/nginx/network_internal.conf:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/private:/etc/nginx/conf.d:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d:/etc/nginx/vhost.d:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d/private:/etc/nginx/vhost.d:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
     labels:
+      - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - ${PRIVATE_NGINX_CONTAINER_LABEL}=true
       # - com.github.nginx-proxy.nginx=true
     ports:
@@ -27,15 +28,20 @@ services:
 
   docker-gen-private:
     container_name: docker-gen-private
-    image: nginxproxy/docker-gen:0.15
+    image: nginxproxy/docker-gen:${DOCKER_GEN_IMAGE_TAG:-latest}
     network_mode: "none"
     environment:
       - NGINX_CONTAINER_LABEL=${PRIVATE_NGINX_CONTAINER_LABEL}
+      - NGINX_DEFAULT_NETWORK_ACCESS=internal
+      - CONTAINER_FILTER_LABEL=${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}
     volumes:
       - ${PROJECT_PATH}/nginx-proxy-volume/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
       - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/private:/etc/nginx/conf.d:rw
+      - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d/private:/etc/nginx/vhost.d:ro
+      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      # Share docker socket to listen to docker events
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
+      - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - com.github.nginx-proxy.docker-gen=true
     command: -notify-signal 1 -notify-filter label=${PRIVATE_NGINX_CONTAINER_LABEL}=true -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
