@@ -20,7 +20,6 @@ services:
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - ${PRIVATE_NGINX_CONTAINER_LABEL}=true
-      # - com.github.nginx-proxy.nginx=true
 
   docker_gen_private:
     container_name: docker_gen_private
@@ -37,7 +36,7 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
-      - com.github.nginx-proxy.docker-gen=true
+      - ${PROPAGATOR_TARGET_LABEL}=true
     environment:
       - NGINX_CONTAINER_LABEL=${PRIVATE_NGINX_CONTAINER_LABEL}
       - NGINX_DEFAULT_NETWORK_ACCESS=internal

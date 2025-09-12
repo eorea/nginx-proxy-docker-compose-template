@@ -22,7 +22,6 @@ services:
     labels:
       - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
       - ${PUBLIC_NGINX_CONTAINER_LABEL}=true
-      - com.github.nginx-proxy.nginx=true
 
   docker_gen_public:
     container_name: docker_gen_public
@@ -39,7 +38,7 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
-      - com.github.nginx-proxy.docker-gen=true
+      - ${PROPAGATOR_TARGET_LABEL}=true
     environment:
       - NGINX_CONTAINER_LABEL=${PUBLIC_NGINX_CONTAINER_LABEL}
       - CONTAINER_FILTER_LABEL=${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}
@@ -62,6 +61,20 @@ services:
       - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
     environment:
       - DEFAULT_EMAIL=${ACME_EMAIL}
+
+  signal_propagator:
+    container_name: signal_propagator
+    image: eorea/docker_signal_propagator:${SIGNAL_PROPAGATOR_IMAGE_TAG:-latest}
+    restart: always
+    network_mode: "none"
+    volumes:
+      # Share docker socket to listen to docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - com.github.nginx-proxy.nginx=true
+      - com.github.nginx-proxy.docker-gen=true
+    environment:
+      - LABEL=${PROPAGATOR_TARGET_LABEL}
 
 networks:
   dmz:
