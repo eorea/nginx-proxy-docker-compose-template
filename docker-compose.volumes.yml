@@ -1,0 +1,20 @@
+services:
+  ingress_public:
+    volumes:
+      - nginx_proxy_html:/usr/share/nginx/html:ro
+      - nginx_proxy_certs:/etc/nginx/certs:ro
+
+  docker_gen_public:
+    volumes:
+      - nginx_proxy_certs:/etc/nginx/certs:ro
+
+  acme_companion:
+    volumes:
+      - nginx_proxy_html:/usr/share/nginx/html:rw
+      - nginx_proxy_certs:/etc/nginx/certs:rw
+      - nginx_proxy_acme:/etc/acme.sh:rw
+
+volumes:
+  nginx_proxy_acme:
+  nginx_proxy_certs:
+  nginx_proxy_html:

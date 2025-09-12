@@ -1,40 +1,81 @@
 # nginx-proxy-docker-compose-template
 
-Nginx proxy's docker compose template, with Let's Encrypt support.
+Nginx proxy's docker compose template, with ACME (Let's Encrypt) support.
+
+## How it works
+
+```text
+            +------------+
+            | docker-gen |--> (1) writes nginx config file when container are
+            +------------+    added, removed, stoped, started
+                  |
+           (2) HUP (reload)
+                  |
+                  V
++------+     +---------+     +----------+
+| User | --> | Ingress | --> | Your App |
++------+     +---------+     +----------+
+                  ^
+                  |
+           (4) HUP (reload)
+                  |
+          +----------------+
+          | acme-companion |--> (3) creates ACME challenges for new containers
+          +----------------+    and triggers provider to validate and sign certs
+```
 
 ## Getting started
 
+
+Create your own `.env` file based on the content of `dotenv.sample` file.
+
+Docker compose should load automatically the `.env` file, in case you see errors regarding `${variable}` not existing, then you may need to source the `.env` file before continuing.
+
+### Source your .env file
+
+Set your local environment by sourcing any of the setenv scripts, depending on your environment.
+
+#### MacOS and Linux sourcing
+
+Bash and zsh shells supports the following syntax: 
+
+```shell
+source ./setenv.sh
+```
+
+If you want to source a `.env.<environment>` file, like `.env.dev` use:
+
+```shell
+source ./setenv.sh .env.dev
+```
+
+#### Powershell sourcing
+
+```shell
+. ./setenv.ps1
+```
+
+If you want to source a `.env.<environment>` file, like `.env.dev` use:
+
+```shell
+. ./setenv.ps1 .env.dev
+```
+
 ### Certs
 
-Review the information contained in this [file](nginx-proxy-volume/certs/README.md) regarding the creation of DH parameters file and importing existing certificates.
+Review the information contained in this [file](nginx_proxy_volumes/certs/README.md) regarding the creation of DH parameters file and importing existing certificates.
 
-### Docker volume
+### Docker volumes
 
 In order for your certificates to be stored persistently you need to use docker volume as follow.
 
-Copy or move `nginx-proxy-volume` to your prefered docker volume path.
+Update the PROJECT_PATH variable in `.env` to reflect this project's absolute path.
 
-Update the volume paths in `docker-compose.yml`.
+### Customize your_*_app samples
 
-#### Use sed to update volume paths
+Within `docker-compose.services.yml` you will find a set of sample applications for which nginx will auto configure its proxy, and for which SSL certificates are going to be created using Let's Encrypt though the acme_companion container.
 
-##### MacOS
-
-```
-sed -i '' 's#/your/path/#/Users/eorea/#' docker-compose.yml
-```
-
-##### Linux
-
-```
-sed -i 's#/your/path/#/home/eorea/#' docker-compose.yml
-```
-
-### Customize your-app service definition
-
-Within `docker-compose.yml` you will find a sample of application for which nginx will auto configure its proxy, and for which SSL certificates are going to be created using Let's Encrypt.
-
-You need to define the following variables in `docker-compose.yml` for this to work.
+You need to update the following variables in `docker-compose.services.yml` for this to work.
 
 | Variable | Description |
 | --- | --- |
@@ -43,3 +84,6 @@ You need to define the following variables in `docker-compose.yml` for this to w
 | LETSENCRYPT_HOST | Comma separated list of domain names for SSL certificate. If multiple domains are specified the first one becomes the CN (Common Name) of the certificate and the rest become the SAN (Subject Alternative Names) |
 | LETSENCRYPT_EMAIL | Email address for SSL certificate registration |
 
+### Running docker compose
+
+read [Docker compose](docs/compose.md) documentation.

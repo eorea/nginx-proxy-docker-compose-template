@@ -1,0 +1,9 @@
+services:
+  ingress_private:
+    volumes:
+      - nginx_proxy_html:/usr/share/nginx/html:ro
+      - nginx_proxy_certs:/etc/nginx/certs:ro
+
+  docker_gen_private:
+    volumes:
+      - nginx_proxy_certs:/etc/nginx/certs:ro
