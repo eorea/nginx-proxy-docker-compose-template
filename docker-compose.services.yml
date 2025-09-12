@@ -1,0 +1,52 @@
+services:
+  your-1st-app:
+    container_name: "your-1st-app"
+    image: nginx:${NGINX_IMAGE_TAG:-latest}
+    depends_on:
+      - acme_companion
+    networks:
+      - private
+    ports:
+      - "80"
+    labels:
+      - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
+      - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
+    environment:
+      VIRTUAL_HOST: your-1st-app.example.com,your-1st-app-private.example.com
+      # VIRTUAL_PORT: 80 # (OPTIONAL. Define it if your app port is different from default port: 80)
+      # LETSENCRYPT_HOST: your-1st-app.example.com,your-1st-app-private.example.com
+      # LETSENCRYPT_EMAIL: ${ACME_EMAIL} # (OPTIONAL. Uses DEFAULT_EMAIL when defined in acme_companion)
+
+  your-2nd-app:
+    container_name: "your-2nd-app"
+    image: nginx:${NGINX_IMAGE_TAG:-latest}
+    depends_on:
+      - acme_companion
+    networks:
+      - private
+    ports:
+      - "80"
+    labels:
+      - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
+    environment:
+      VIRTUAL_HOST: your-2nd-app.example.com
+      # VIRTUAL_PORT: 80 # (OPTIONAL. Define it if your app port is different from default port: 80)
+      # LETSENCRYPT_HOST: your-2nd-app.example.com
+      # LETSENCRYPT_EMAIL: ${ACME_EMAIL} # (OPTIONAL. Uses DEFAULT_EMAIL when defined in acme_companion)
+
+  your-3rd-app:
+    container_name: "your-3rd-app"
+    image: nginx:${NGINX_IMAGE_TAG:-latest}
+    networks:
+      - private
+    ports:
+      - "80"
+    depends_on:
+      - acme_companion
+    labels:
+      - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
+    environment:
+      VIRTUAL_HOST: your-3rd-app.example.com
+      # VIRTUAL_PORT: 80 # (OPTIONAL. Define it if your app port is different from default port: 80)
+      # LETSENCRYPT_HOST: your-3rd-app.example.com
+      # LETSENCRYPT_EMAIL: ${ACME_EMAIL} # (OPTIONAL. Uses DEFAULT_EMAIL when defined in acme_companion)

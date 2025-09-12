@@ -1,1 +1,10 @@
 .env*
+
+nginx_proxy_volumes/acme/*
+nginx_proxy_volumes/certs/*
+nginx_proxy_volumes/html/*
+
+!nginx_proxy_volumes/acme/README.md
+!nginx_proxy_volumes/certs/README.md
+!nginx_proxy_volumes/html/50x.html
+!nginx_proxy_volumes/html/index.html

@@ -8,39 +8,40 @@ services:
     networks:
       - public
       - private
+    ports:
+      - "${PRIVATE_PORT_HTTP}:80"
+      - "${PRIVATE_PORT_HTTPS}:443"
     volumes:
-      - ${PROJECT_PATH}/nginx-proxy-volume/conf/network_internal.conf:/etc/nginx/network_internal.conf:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/private:/etc/nginx/conf.d:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d/private:/etc/nginx/vhost.d:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/html:/usr/share/nginx/html:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/conf/network_internal.conf:/etc/nginx/network_internal.conf:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/conf.d/private:/etc/nginx/conf.d:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/vhost.d/private:/etc/nginx/vhost.d:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/html:/usr/share/nginx/html:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/certs:/etc/nginx/certs:ro
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - ${PRIVATE_NGINX_CONTAINER_LABEL}=true
       # - com.github.nginx-proxy.nginx=true
-    ports:
-      - "${PRIVATE_PORT_HTTP}:80"
-      - "${PRIVATE_PORT_HTTPS}:443"
 
   docker_gen_private:
     container_name: docker_gen_private
     image: nginxproxy/docker-gen:${DOCKER_GEN_IMAGE_TAG:-latest}
+    command: -notify-signal 1 -notify-filter label=${PRIVATE_NGINX_CONTAINER_LABEL}=true -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    restart: always
     network_mode: "none"
-    environment:
-      - NGINX_CONTAINER_LABEL=${PRIVATE_NGINX_CONTAINER_LABEL}
-      - NGINX_DEFAULT_NETWORK_ACCESS=internal
-      - CONTAINER_FILTER_LABEL=${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}
     volumes:
-      - ${PROJECT_PATH}/nginx-proxy-volume/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/conf.d/private:/etc/nginx/conf.d:rw
-      - ${PROJECT_PATH}/nginx-proxy-volume/vhost.d/private:/etc/nginx/vhost.d:ro
-      - ${PROJECT_PATH}/nginx-proxy-volume/certs:/etc/nginx/certs:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/conf.d/private:/etc/nginx/conf.d:rw
+      - ${PROJECT_PATH}/nginx_proxy_volumes/vhost.d/private:/etc/nginx/vhost.d:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/certs:/etc/nginx/certs:ro
       # Share docker socket to listen to docker events
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - com.github.nginx-proxy.docker-gen=true
-    command: -notify-signal 1 -notify-filter label=${PRIVATE_NGINX_CONTAINER_LABEL}=true -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    environment:
+      - NGINX_CONTAINER_LABEL=${PRIVATE_NGINX_CONTAINER_LABEL}
+      - NGINX_DEFAULT_NETWORK_ACCESS=internal
+      - CONTAINER_FILTER_LABEL=${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}
 
   acme_companion:
     depends_on:
