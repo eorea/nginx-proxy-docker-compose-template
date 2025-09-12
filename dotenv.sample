@@ -1,13 +1,17 @@
 PROJECT_PATH=/your/project/path
+# Nginx Proxy
 ACME_EMAIL=your_email@example.com
 NGINX_PROXY_PUBLIC_INSTANCE_LABEL=com.github.nginx-proxy.instance.public
 NGINX_PROXY_PRIVATE_INSTANCE_LABEL=com.github.nginx-proxy.instance.private
+PROPAGATOR_TARGET_LABEL=com.github.eorea.signal-propagator.target
 PUBLIC_NGINX_CONTAINER_LABEL=com.github.nginx-proxy.nginx-proxy.dmz
 PUBLIC_PORT_HTTP=9080
 PUBLIC_PORT_HTTPS=9443
 PRIVATE_NGINX_CONTAINER_LABEL=com.github.nginx-proxy.nginx-proxy.public
 PRIVATE_PORT_HTTP=80
 PRIVATE_PORT_HTTPS=443
+# Images tags
 NGINX_IMAGE_TAG=1.29
 DOCKER_GEN_IMAGE_TAG=0.15
 ACME_COMPANION_IMAGE_TAG=2.6
+SIGNAL_PROPAGATOR_IMAGE_TAG=1.0

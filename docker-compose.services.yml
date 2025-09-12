@@ -37,12 +37,12 @@ services:
   your-3rd-app:
     container_name: "your-3rd-app"
     image: nginx:${NGINX_IMAGE_TAG:-latest}
+    depends_on:
+      - acme_companion
     networks:
       - private
     ports:
       - "80"
-    depends_on:
-      - acme_companion
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
     environment:
