@@ -4,25 +4,7 @@ Nginx proxy's docker compose template, with ACME (Let's Encrypt) support.
 
 ## How it works
 
-```text
-            +------------+
-            | docker-gen |--> (1) writes nginx config file when container are
-            +------------+    added, removed, stoped, started
-                  |
-           (2) HUP (reload)
-                  |
-                  V
-+------+     +---------+     +----------+
-| User | --> | Ingress | --> | Your App |
-+------+     +---------+     +----------+
-                  ^
-                  |
-           (4) HUP (reload)
-                  |
-          +----------------+
-          | acme-companion |--> (3) creates ACME challenges for new containers
-          +----------------+    and triggers provider to validate and sign certs
-```
+Read [How it works](docs/how-it-works.md) documentation.
 
 ## Getting started
 
@@ -86,4 +68,4 @@ You need to update the following variables in `docker-compose.services.yml` for 
 
 ### Running docker compose
 
-read [Docker compose](docs/compose.md) documentation.
+Read [Docker compose](docs/compose.md) documentation.

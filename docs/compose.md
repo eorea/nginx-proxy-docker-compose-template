@@ -30,7 +30,7 @@ File | Purpose
 --- | ---
 docker-compose.yml | Starts the basic services with a single ingress instance
 docker-compose.private.yml | Contains the added services to support a second ingress instance
-docker-compose.service.yml | Contains 3 sample services to demonstrate the use of the two ingress instances
+docker-compose.services.yml | Contains 3 sample services to demonstrate the use of the two ingress instances
 docker-compose.volumes.yml | Contains the change in configuration to use docker volumes for certs, acme and html for a single ingress instance
 docker-compose.volumes.private.yml | Contains the change in configuration to use docker volumes for certs, acme and html for a the second ingress instance
 
@@ -58,7 +58,7 @@ For an scenario where you want to have a public ingress nginx instance and one p
 docker compose -f docker-compose.yml -f docker-compose.private.yml <COMMAND>
 ```
 
-### Dual ingress instance using volumes
+### Dual ingress instances using volumes
 
 To switch from bind mount point to docker volumes in a dual ingress scenario load also both `docker-compose.volumes.yaml` and `docker-compose.volumes.private.yml` files.
 
