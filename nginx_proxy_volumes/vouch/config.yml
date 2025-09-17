@@ -1,0 +1,37 @@
+vouch:
+  allowAllUsers: false
+  domains:
+    - your-1st-app.example.com
+    - oauth2-proxy
+  loglevel: debug
+  #  testing: true
+
+  jwt:
+    secret: <JWT_SECRET>
+
+  headers:
+    claims:
+      - id
+      - email
+    idtoken: X-Vouch-IdP-IdToken
+
+  cookie:
+    domain: example.com
+
+  whitelist:
+    - user1
+    - user2
+
+oauth:
+  provider: oidc
+  client_id: <CLIENT_ID>
+  client_secret: <CLIENT_SECRET>
+  auth_url: https://ipd.com/api/oauth2/authorize
+  token_url: https://idp.com/api/oauth2/token
+
+  scopes:
+    - identify
+    - email
+
+  # Set the callback URL to the domain that Vouch is running on
+  callback_url: https://login.example.com/auth
