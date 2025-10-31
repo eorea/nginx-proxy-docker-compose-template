@@ -51,7 +51,7 @@ sequenceDiagram
         else cert not found
           docker_gen_public->>docker_gen_public: add partial vhost<br/>- acme challenge
         end
-        docker_gen_public->>volumes: writes nginx config file
+        docker_gen_public->>volumes: writes nginx<br/>config file
         docker_gen_public->>docker.sock: Signal HUP ingress_public<br/>(reload)
       end
     end
@@ -84,7 +84,7 @@ sequenceDiagram
     rect rgb(32,128,64)
       loop on every notification
         docker.sock-)ingress_*: notifies Signal HUP<br/>(reload)
-        volumes-->>ingress_*: reads < instance >'s config
+        volumes-->>ingress_*: reads < instance >'s<br/>config
         ingress_*->>ingress_*: reload config
       end
     end
@@ -110,15 +110,15 @@ sequenceDiagram
           docker.sock-)docker_gen_*: notifies new container<br/>"Your app"
         end
         docker_gen_*<<->>docker.sock: gets < instance >'s containers config
-        volumes-->>docker_gen_*: reads < instance >'s template
-        volumes-->>docker_gen_*: reads < instance >'s vhost.d conf
+        volumes-->>docker_gen_*: reads < instance >'s<br/>template
+        volumes-->>docker_gen_*: reads < instance >'s<br/>vhost.d conf
         volumes-->>docker_gen_*: reads existing certs
         alt cert available
           docker_gen_*->>docker_gen_*: add full vhost<br/>- acme challenge<br/>- http to https redirect<br/>- ssl/tls configuration
         else cert not found
           docker_gen_*->>docker_gen_*: add partial vhost<br/>- acme challenge
         end
-        docker_gen_*->>volumes: writes < instance >'s nginx config file
+        docker_gen_*->>volumes: writes < instance >'s<br/>nginx config file
         docker_gen_*->>docker.sock: Signal HUP ingress_< instance ><br/>(reload)
       end
     end
