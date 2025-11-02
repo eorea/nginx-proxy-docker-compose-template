@@ -1,4 +1,9 @@
 services:
+  ingress_public:
+    labels:
+      - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
+      - ${PROPAGATOR_TARGET_INGRESS_LABEL}=true
+
   ingress_private:
     container_name: ingress_private
     image: nginx:${NGINX_IMAGE_TAG:-latest}
@@ -20,6 +25,14 @@ services:
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - ${PRIVATE_NGINX_CONTAINER_LABEL}=true
+      - ${PROPAGATOR_TARGET_INGRESS_LABEL}=true
+
+  docker_gen_public:
+    labels:
+      - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
+      - ${PROPAGATOR_TARGET_DOCKER_GEN_LABEL}=true
+    environment:
+      - CONTAINER_FILTER_LABEL=${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}
 
   docker_gen_private:
     container_name: docker_gen_private
@@ -36,7 +49,7 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
-      - ${PROPAGATOR_TARGET_LABEL}=true
+      - ${PROPAGATOR_TARGET_DOCKER_GEN_LABEL}=true
     environment:
       - NGINX_CONTAINER_LABEL=${PRIVATE_NGINX_CONTAINER_LABEL}
       - NGINX_DEFAULT_NETWORK_ACCESS=internal
@@ -46,3 +59,31 @@ services:
     depends_on:
       - ingress_public
       - ingress_private
+    labels:
+      - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
+
+  signal_propagator_ingress:
+    container_name: signal_propagator_ingress
+    image: eorea/docker_signal_propagator:${SIGNAL_PROPAGATOR_IMAGE_TAG:-latest}
+    restart: always
+    network_mode: "none"
+    volumes:
+      # Share docker socket to listen to docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - com.github.nginx-proxy.nginx=true
+    environment:
+      - LABEL=${PROPAGATOR_TARGET_INGRESS_LABEL}
+  
+  signal_propagator_docker_gen:
+    container_name: signal_propagator_docker_gen
+    image: eorea/docker_signal_propagator:${SIGNAL_PROPAGATOR_IMAGE_TAG:-latest}
+    restart: always
+    network_mode: "none"
+    volumes:
+      # Share docker socket to listen to docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - com.github.nginx-proxy.docker-gen=true
+    environment:
+      - LABEL=${PROPAGATOR_TARGET_DOCKER_GEN_LABEL}
