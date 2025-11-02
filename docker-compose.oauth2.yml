@@ -1,0 +1,67 @@
+services:
+  ingress_public:
+    volumes:
+      - ${PROJECT_PATH}/nginx_proxy_volumes/conf/oauth2_proxy.conf:/etc/nginx/oauth2_proxy.conf:ro
+      - ${PROJECT_PATH}/nginx_proxy_volumes/vhost.d/public-oauth:/etc/nginx/vhost.d:ro
+
+  docker_gen_public:
+    volumes:
+      - ${PROJECT_PATH}/nginx_proxy_volumes/vhost.d/public-oauth:/etc/nginx/vhost.d:ro
+
+  your_1st_app:
+    depends_on:
+      - oauth2_proxy
+
+  your_2nd_app:
+    depends_on:
+      - oauth2_proxy
+
+  your_3rd_app:
+    depends_on:
+      - oauth2_proxy
+
+  idp_mock:
+    container_name: idp_mock
+    image: dexidp/dex:${IDP_MOCK_IMAGE_TAG:-latest}
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    restart: 'always'
+    networks:
+      - private
+    ports:
+      - "5556:5556"
+    volumes:
+      - ${PROJECT_PATH}/nginx_proxy_volumes/dexidp/config.yaml:/etc/dex/config.yaml
+
+  oauth2_proxy:
+    hostname: oauth2-proxy
+    container_name: oauth2_proxy
+    image: voucher/vouch-proxy:${OAUTH2_PROXY_IMAGE_TAG:-alpine}
+    restart: 'unless-stopped'
+    depends_on:
+      - acme_companion
+      - idp_mock
+    networks:
+      - private
+    ports:
+      - target: ${OAUTH2_PROXY_PORT}
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ${PROJECT_PATH}/nginx_proxy_volumes/vouch
+        target: /config
+    labels:
+      - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
+    environment:
+      - VIRTUAL_HOST=${OAUTH2_PROXY_HOSTNAME}.${DOMAIN}
+      - VIRTUAL_PORT=${OAUTH2_PROXY_PORT}
+      - LETSENCRYPT_HOST=${OAUTH2_PROXY_HOSTNAME}.${DOMAIN}
+      - LETSENCRYPT_EMAIL=${ACME_EMAIL}
+      # - VOUCH_DOMAINS='your-1st-app.example.com,oauth2-proxy'
+      # - VOUCH_WHITELIST='user1,user2'
+      # - OAUTH_PROVIDER=oidc
+      # - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      # - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
+      # - OAUTH_SCOPES=${OAUTH_SCOPES}
+      # - OAUTH_AUTH_URL=https://idp.com/api/oauth2/authorize
+      # - OAUTH_TOKEN_URL=https://idp.com/api/oauth2/token
+      # - OAUTH_CALLBACK_URL=https://${OAUTH2_PROXY_HOSTNAME}.${DOMAIN}/auth
