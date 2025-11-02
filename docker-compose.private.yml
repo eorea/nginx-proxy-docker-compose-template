@@ -2,7 +2,7 @@ services:
   ingress_public:
     labels:
       - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
-      - ${PROPAGATOR_TARGET_NGINX_LABEL}=true
+      - ${PROPAGATOR_TARGET_INGRESS_LABEL}=true
 
   ingress_private:
     container_name: ingress_private
@@ -25,7 +25,7 @@ services:
     labels:
       - ${NGINX_PROXY_PRIVATE_INSTANCE_LABEL}=true
       - ${PRIVATE_NGINX_CONTAINER_LABEL}=true
-      - ${PROPAGATOR_TARGET_NGINX_LABEL}=true
+      - ${PROPAGATOR_TARGET_INGRESS_LABEL}=true
 
   docker_gen_public:
     labels:
@@ -62,8 +62,8 @@ services:
     labels:
       - ${NGINX_PROXY_PUBLIC_INSTANCE_LABEL}=true
 
-  signal_propagator_nginx:
-    container_name: signal_propagator_nginx
+  signal_propagator_ingress:
+    container_name: signal_propagator_ingress
     image: eorea/docker_signal_propagator:${SIGNAL_PROPAGATOR_IMAGE_TAG:-latest}
     restart: always
     network_mode: "none"
@@ -73,7 +73,7 @@ services:
     labels:
       - com.github.nginx-proxy.nginx=true
     environment:
-      - LABEL=${PROPAGATOR_TARGET_NGINX_LABEL}
+      - LABEL=${PROPAGATOR_TARGET_INGRESS_LABEL}
   
   signal_propagator_docker_gen:
     container_name: signal_propagator_docker_gen

@@ -63,20 +63,20 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant docker.sock@{ "type" : "entity" }
-  participant signal_propagator
+  participant signal_propagator_*@{ "type" : "collections" }
   participant ingress_*@{ "type" : "collections" }
   participant acme_companion
   participant docker_gen_*@{ "type" : "collections" }
   participant volumes@{ "type" : "collections" }
 
-  par signal-propagator
+  par signal_propagator_ingress]<br/>[signal_propagator_docker_gen
     rect rgb(32,32,128)
       loop on every notification
-        docker.sock-)signal_propagator: notifies Signal HUP<br/>(reload)
-        signal_propagator<<->>docker.sock:  get container ids<br/>matching filter label
-        Note right of signal_propagator: container ids belogs to<br/>docker_gen_public and<br/>docker_gen_private<br/>instances
-        loop Every container id
-          signal_propagator->>docker.sock:  Signal HUP container id<br/>(reload)
+        docker.sock-)signal_propagator_*: notifies Signal HUP<br/>(reload)
+        signal_propagator_*<<->>docker.sock:  get container ids<br/>with < instance >'s<br/>target label
+        Note right of signal_propagator_*: container ids of<br/>ingress_* or <br/>docker_gen_*<br/>instances
+        loop Every returned cid
+          signal_propagator_*->>docker.sock:  Signal HUP cid<br/>(reload)
         end
       end
     end
@@ -97,7 +97,7 @@ sequenceDiagram
         acme_companion->>volumes: writes acme<br/>challenge files
         acme_companion->>acme_companion: signs certificates
         acme_companion->>volumes: writes cert files
-        acme_companion-)docker.sock:  Signal HUP signal_propagator<br/>(reload)
+        acme_companion-)docker.sock:  Signal HUP signal_propagator_*<br/>(reload)
         
       end
     end
